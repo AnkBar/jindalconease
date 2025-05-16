@@ -1,78 +1,47 @@
 {% extends "base.html" %}
 
-{% block title %}Manage User Requests{% endblock %}
+     {% block title %}Manage User Requests{% endblock %}
 
-{% block content %}
-<div class="container">
-    <h2 class="mt-4">Manage User Requests</h2>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-    <div class="card">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Username</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                            <th>Status</th>
-                            <th>Created At</th>
-                            <th>Actions</th>
-                            <th>Change Role</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for user in users %}
-                        <tr>
-                            <td>{{ user[0] }}</td>
-                            <td>{{ user[1] }}</td>
-                            <td>{{ user[4] }}</td>
-                            <td>{{ user[2] }}</td>
-                            <td>{{ 'Approved' if user[3] else 'Pending' }}</td>
-                            <td>{{ user[5] }}</td>
-                            <td>
-                                {% if not user[3] %}
-                                <form method="POST" action="{{ url_for('approve_user', user_id=user[0]) }}" style="display:inline;">
-                                    <select name="role" class="form-select form-select-sm d-inline-block w-auto" required>
-                                        <option value="admin">Admin</option>
-                                        <option value="user">User</option>
-                                    </select>
-                                    <button type="submit" class="btn btn-success btn-sm">Approve</button>
-                                </form>
-                                <form method="POST" action="{{ url_for('reject_user', user_id=user[0]) }}" style="display:inline;">
-                                    <button type="submit" class="btn btn-danger btn-sm">Reject</button>
-                                </form>
-                                {% else %}
-                                <span class="badge bg-success">Approved</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if user[3] and user[2] != 'pending' %}
-                                <form method="POST" action="{{ url_for('change_role', user_id=user[0]) }}" style="display:inline;">
-                                    <select name="new_role" class="form-select form-select-sm d-inline-block w-auto" required>
-                                        <option value="admin" {% if user[2] == 'admin' %}selected{% endif %}>Admin</option>
-                                        <option value="user" {% if user[2] == 'user' %}selected{% endif %}>User</option>
-                                    </select>
-                                    <button type="submit" class="btn btn-warning btn-sm">Change Role</button>
-                                </form>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
+     {% block content %}
+     <div class="container mt-5">
+         <h2 class="text-center mb-4">Pending User Requests</h2>
+         {% with messages = get_flashed_messages(with_categories=true) %}
+             {% if messages %}
+                 {% for category, message in messages %}
+                     <div class="alert alert-{{ category }}" role="alert">
+                         {{ message }}
+                     </div>
+                 {% endfor %}
+             {% endif %}
+         {% endwith %}
+         {% if pending_users %}
+             <table class="table table-striped">
+                 <thead>
+                     <tr>
+                         <th>ID</th>
+                         <th>Username</th>
+                         <th>Email</th>
+                         <th>Created At</th>
+                         <th>Actions</th>
+                     </tr>
+                 </thead>
+                 <tbody>
+                     {% for user in pending_users %}
+                         <tr>
+                             <td>{{ user[0] }}</td>
+                             <td>{{ user[1] }}</td>
+                             <td>{{ user[2] }}</td>
+                             <td>{{ user[3] }}</td>
+                             <td>
+                                 <a href="{{ url_for('approve_user', user_id=user[0]) }}" class="btn btn-success btn-sm">Approve</a>
+                                 <a href="{{ url_for('reject_user', user_id=user[0]) }}" class="btn btn-danger btn-sm">Reject</a>
+                             </td>
+                         </tr>
+                     {% endfor %}
+                 </tbody>
+             </table>
+         {% else %}
+             <p class="text-center">No pending user requests.</p>
+         {% endif %}
+     </div>
+     {% endblock %}
