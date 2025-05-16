@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4 text-primary">Dashboard - {{ role | capitalize }}</h2>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Request Statistics</h5>
+                    <p class="card-text">Total/Approved/Acknowledged/Rejected: {{ stats }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Your Requests</h5>
+                    <table class="table table-hover table-bordered align-middle">
+                        <thead class="table-primary">
+                            <tr>
+                                <th scope="col">Form ID</th>
+                                {% if role in ['admin', 'super_admin'] %}
+                                <th scope="col">User</th>
+                                {% endif %}
+                                <th scope="col">Status</th>
+                                <th scope="col">Created At</th>
+                                <th scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for req in requests %}
+                            <tr>
+                                <td>{{ req[1] }}</td>
+                                {% if role in ['admin', 'super_admin'] %}
+                                <td>{{ req[2] }}</td>
+                                {% endif %}
+                                <td>
+                                    <span class="badge bg-{% if req[3] == 'approved' %}success{% elif req[3] == 'rejected' %}danger{% elif req[3] == 'modified' %}warning{% else %}secondary{% endif %}">
+                                        {{ req[3] | capitalize }}
+                                    </span>
+                                </td>
+                                <td>{{ req[4] }}</td>
+                                <td>
+                                    <a href="{{ url_for('view_form', form_id=req[1]) }}" class="btn btn-info btn-sm">View</a>
+                                    {% if role not in ['admin', 'super_admin'] and req[3] in ['approved', 'rejected', 'modified'] and not req[5] %}
+                                    <form method="POST" action="{{ url_for('acknowledge_form', form_id=req[1]) }}" style="display:inline;">
+                                        <button type="submit" class="btn btn-success btn-sm">Acknowledge</button>
+                                    </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% if role in ['admin', 'super_admin'] %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Dummy Users</h5>
+                    <table class="table table-hover table-bordered align-middle">
+                        <thead class="table-primary">
+                            <tr>
+                                <th scope="col">ID</th>
+                                <th scope="col">Name</th>
+                                <th scope="col">Task</th>
+                                <th scope="col">Created At</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for dummy in dummy_users %}
+                            <tr>
+                                <td>{{ dummy[0] }}</td>
+                                <td>{{ dummy[1] }}</td>
+                                <td>{{ dummy[2] }}</td>
+                                <td>{{ dummy[3] }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="mb-4">
+                {% if role in ['admin', 'super_admin'] %}
+                <a href="{{ url_for('manage_questions') }}" class="btn btn-primary me-2">Manage Questions</a>
+                <a href="{{ url_for('manage_dummy_users') }}" class="btn btn-primary me-2">Manage Dummy Users</a>
+                <a href="{{ url_for('export_forms') }}" class="btn btn-success me-2">Export Forms</a>
+                <a href="{{ url_for('view_logs') }}" class="btn btn-info me-2">View Logs</a>
+                <a href="{{ url_for('export_logs') }}" class="btn btn-success me-2">Export Logs</a>
+                {% endif %}
+                {% if role == 'super_admin' %}
+                <a href="{{ url_for('user_requests') }}" class="btn btn-warning me-2">Manage User Requests</a>
+                <a href="{{ url_for('manage_admins') }}" class="btn btn-warning me-2">Manage Admins</a>
+                {% endif %}
+                {% if role not in ['admin', 'super_admin'] %}
+                <a href="{{ url_for('submit_form') }}" class="btn btn-primary me-2">Submit Form</a>
+                {% endif %}
+                <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

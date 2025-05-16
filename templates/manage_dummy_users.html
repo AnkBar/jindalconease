@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+    <h2 class="text-2xl font-bold mb-4">Manage Dummy Users</h2>
+    <form method="POST" class="mb-8">
+        <div class="mb-4">
+            <label class="block text-gray-700 dark:text-gray-300">Name</label>
+            <input type="text" name="name" class="w-full border rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" required>
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 dark:text-gray-300">Task</label>
+            <input type="text" name="task" class="w-full border rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" required>
+        </div>
+        <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 dark:hover:bg-blue-500">Add Dummy User</button>
+    </form>
+    <h3 class="text-lg font-semibold mb-2">Current Dummy Users</h3>
+    <table class="w-full border-collapse border dark:border-gray-700">
+        <thead>
+            <tr class="bg-gray-200 dark:bg-gray-700">
+                <th class="border p-2 dark:border-gray-600">Name</th>
+                <th class="border p-2 dark:border-gray-600">Task</th>
+                <th class="border p-2 dark:border-gray-600">Created At</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for dummy in dummy_users %}
+                <tr>
+                    <td class="border p-2 dark:border-gray-600">{{ dummy[1] }}</td>
+                    <td class="border p-2 dark:border-gray-600">{{ dummy[2] }}</td>
+                    <td class="border p-2 dark:border-gray-600">{{ dummy[3] }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

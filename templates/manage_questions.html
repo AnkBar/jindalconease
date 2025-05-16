@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+    <h2 class="text-2xl font-bold mb-4">Manage Questions</h2>
+    <form method="POST" class="mb-8">
+        <input type="hidden" name="question_id" value="">
+        <div class="mb-4">
+            <label class="block text-gray-700 dark:text-gray-300">Question Text</label>
+            <input type="text" name="question_text" class="w-full border rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" required>
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 dark:text-gray-300">Question Type</label>
+            <select name="question_type" class="w-full border rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                <option value="dropdown">Dropdown</option>
+                <option value="text">Text</option>
+            </select>
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 dark:text-gray-300">Options (comma-separated, for dropdown)</label>
+            <input type="text" name="options" class="w-full border rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 dark:text-gray-300">Form Image URL (optional)</label>
+            <input type="text" name="form_image" class="w-full border rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+        </div>
+        <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 dark:hover:bg-blue-500">Add/Update Question</button>
+    </form>
+    <h3 class="text-lg font-semibold mb-2">Current Questions</h3>
+    <table class="w-full border-collapse border dark:border-gray-700">
+        <thead>
+            <tr class="bg-gray-200 dark:bg-gray-700">
+                <th class="border p-2 dark:border-gray-600">Question</th>
+                <th class="border p-2 dark:border-gray-600">Type</th>
+                <th class="border p-2 dark:border-gray-600">Options</th>
+                <th class="border p-2 dark:border-gray-600">Image</th>
+                <th class="border p-2 dark:border-gray-600">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for question in questions %}
+                <tr>
+                    <td class="border p-2 dark:border-gray-600">{{ question[1] }}</td>
+                    <td class="border p-2 dark:border-gray-600">{{ question[2] }}</td>
+                    <td class="border p-2 dark:border-gray-600">{{ question[3] }}</td>
+                    <td class="border p-2 dark:border-gray-600">{{ question[4] }}</td>
+                    <td class="border p-2 dark:border-gray-600">
+                        <form method="POST">
+                            <input type="hidden" name="question_id" value="{{ question[0] }}">
+                            <input type="hidden" name="question_text" value="{{ question[1] }}">
+                            <input type="hidden" name="question_type" value="{{ question[2] }}">
+                            <input type="hidden" name="options" value="{{ question[3] }}">
+                            <input type="hidden" name="form_image" value="{{ question[4] }}">
+                            <button type="submit" class="text-blue-600 dark:text-blue-400 hover:underline">Edit</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

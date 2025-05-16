@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+    <h2 class="text-2xl font-bold mb-4">System Logs</h2>
+    <table class="w-full border-collapse border dark:border-gray-700">
+        <thead>
+            <tr class="bg-gray-200 dark:bg-gray-700">
+                <th class="border p-2 dark:border-gray-600">User</th>
+                <th class="border p-2 dark:border-gray-600">Action</th>
+                <th class="border p-2 dark:border-gray-600">Timestamp</th>
+                <th class="border p-2 dark:border-gray-600">Details</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+                <tr>
+                    <td class="border p-2 dark:border-gray-600">{{ log[5] or 'System' }}</td>
+                    <td class="border p-2 dark:border-gray-600">{{ log[2] }}</td>
+                    <td class="border p-2 dark:border-gray-600">{{ log[3] }}</td>
+                    <td class="border p-2 dark:border-gray-600">{{ log[4] }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
