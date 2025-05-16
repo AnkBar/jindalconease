@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %} - Form Approval System</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('dashboard') }}">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" height="30">
+                Form Approval System
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    {% if 'user_id' in session %}
+                        {% if session['role'] == 'user' %}
+                            <li class="nav-item"><a class="nav-link" href="{{ url_for('raise_request') }}">Raise Request</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{{ url_for('approved_requests') }}">Approved Requests</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{{ url_for('acknowledge_requests') }}">Acknowledge Requests</a></li>
+                        {% elif session['role'] == 'dummy_user' %}
+                            <li class="nav-item"><a class="nav-link" href="{{ url_for('approved_requests') }}">Assigned Requests</a></li>
+                        {% elif session['role'] in ['admin', 'super_admin'] %}
+                            <li class="nav-item"><a class="nav-link" href="{{ url_for('manage_requests') }}">Manage Requests</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{{ url_for('view_logs') }}">View Logs</a></li>
+                        {% endif %}
+                        {% if session['role'] == 'super_admin' %}
+                            <li class="nav-item"><a class="nav-link" href="{{ url_for('user_requests') }}">User Requests</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{{ url_for('manage_dummy_users') }}">Manage Dummy Users</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{{ url_for('manage_questions') }}">Manage Questions</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{{ url_for('all_forms') }}">All Forms</a></li> <!-- Added -->
+                        {% endif %}
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('change_password') }}">Change Password</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">Logout</a></li>
+                    {% else %}
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}">Login</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('signup') }}">Signup</a></li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <button class="btn btn-outline-light" id="themeToggle">Toggle Theme</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container mt-5">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</body>
+</html>
