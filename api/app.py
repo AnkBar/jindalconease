@@ -37,7 +37,9 @@ if USE_SQLITE:
         return conn
 else:
     def get_db_connection():
-        postgres_url = os.getenv("POSTGRES_URL", "postgres://localhost:5432/form_approval_system")
+        postgres_url = os.getenv("POSTGRES_URL")
+        if not postgres_url:
+            raise ValueError("POSTGRES_URL environment variable is not set. Please configure it in your environment.")
         logger.info(f"Using Postgres database with POSTGRES_URL: {postgres_url}")
         try:
             conn = psycopg2.connect(
@@ -532,36 +534,35 @@ def all_forms():
         c.execute("SELECT f.*, u.username FROM forms f JOIN users u ON f.user_id = u.id ORDER BY f.created_at DESC")
         forms = c.fetchall()
         
-        # For each form, fetch timestamps for submission, approval, and acknowledgment from logs
+        # Fetch all relevant logs in one query to reduce database calls
+        form_ids = [form['id'] for form in forms]
+        if USE_SQLITE:
+            c.execute("SELECT * FROM logs WHERE action LIKE '%request%' OR action LIKE '%form%'")
+        else:
+            c.execute("SELECT * FROM logs WHERE action ILIKE '%request%' OR action ILIKE '%form%'")
+        logs = c.fetchall()
+        
+        # Process logs to extract timestamps
+        logs_dict = {}
+        for log in logs:
+            log_action = log['action']
+            for form_id in form_ids:
+                if str(form_id) in log_action:
+                    if form_id not in logs_dict:
+                        logs_dict[form_id] = {'approved_at': 'N/A', 'acknowledged_at': 'N/A'}
+                    if 'Approved' in log_action:
+                        logs_dict[form_id]['approved_at'] = log['timestamp']
+                    elif 'Acknowledged' in log_action:
+                        logs_dict[form_id]['acknowledged_at'] = log['timestamp']
+        
+        # Build form details with timestamps
         form_details = []
         for form in forms:
             form_dict = dict(form)
-            request_id = form['request_id']
             form_id = form['id']
-            
-            # Fetch submission timestamp (already in created_at)
             form_dict['submitted_at'] = form['created_at']
-            
-            # Fetch approval timestamp from logs
-            if USE_SQLITE:
-                c.execute("SELECT timestamp FROM logs WHERE action LIKE ? AND action LIKE ?",
-                          (f"%request {form_id}%", "%Approved%"))
-            else:
-                c.execute("SELECT timestamp FROM logs WHERE action ILIKE %s AND action ILIKE %s",
-                          (f"%request {form_id}%", "%Approved%"))
-            approval_log = c.fetchone()
-            form_dict['approved_at'] = approval_log['timestamp'] if approval_log else 'N/A'
-            
-            # Fetch acknowledgment timestamp from logs
-            if USE_SQLITE:
-                c.execute("SELECT timestamp FROM logs WHERE action LIKE ? AND action LIKE ?",
-                          (f"%form {form_id}%", "%Acknowledged%"))
-            else:
-                c.execute("SELECT timestamp FROM logs WHERE action ILIKE %s AND action ILIKE %s",
-                          (f"%form {form_id}%", "%Acknowledged%"))
-            ack_log = c.fetchone()
-            form_dict['acknowledged_at'] = ack_log['timestamp'] if ack_log and form['acknowledged'] == 1 else 'N/A'
-            
+            form_dict['approved_at'] = logs_dict.get(form_id, {}).get('approved_at', 'N/A')
+            form_dict['acknowledged_at'] = logs_dict.get(form_id, {}).get('acknowledged_at', 'N/A') if form['acknowledged'] == 1 else 'N/A'
             form_details.append(form_dict)
         
         return render_template('all_forms.html', forms=form_details)
@@ -1045,6 +1046,27 @@ def download_form_summary():
         c.execute("SELECT f.*, u.username FROM forms f JOIN users u ON f.user_id = u.id ORDER BY f.created_at DESC")
         forms = c.fetchall()
         
+        # Fetch all relevant logs in one query to reduce database calls
+        form_ids = [form['id'] for form in forms]
+        if USE_SQLITE:
+            c.execute("SELECT * FROM logs WHERE action LIKE '%request%' OR action LIKE '%form%'")
+        else:
+            c.execute("SELECT * FROM logs WHERE action ILIKE '%request%' OR action ILIKE '%form%'")
+        logs = c.fetchall()
+        
+        # Process logs to extract timestamps
+        logs_dict = {}
+        for log in logs:
+            log_action = log['action']
+            for form_id in form_ids:
+                if str(form_id) in log_action:
+                    if form_id not in logs_dict:
+                        logs_dict[form_id] = {'approved_at': 'N/A', 'acknowledged_at': 'N/A'}
+                    if 'Approved' in log_action:
+                        logs_dict[form_id]['approved_at'] = log['timestamp']
+                    elif 'Acknowledged' in log_action:
+                        logs_dict[form_id]['acknowledged_at'] = log['timestamp']
+        
         # Create a CSV in memory
         output = io.StringIO()
         writer = csv.writer(output)
@@ -1054,31 +1076,10 @@ def download_form_summary():
         
         # Write form data with timestamps
         for form in forms:
-            request_id = form['request_id']
             form_id = form['id']
-            
-            # Fetch submission timestamp (already in created_at)
             submitted_at = form['created_at']
-            
-            # Fetch approval timestamp from logs
-            if USE_SQLITE:
-                c.execute("SELECT timestamp FROM logs WHERE action LIKE ? AND action LIKE ?",
-                          (f"%request {form_id}%", "%Approved%"))
-            else:
-                c.execute("SELECT timestamp FROM logs WHERE action ILIKE %s AND action ILIKE %s",
-                          (f"%request {form_id}%", "%Approved%"))
-            approval_log = c.fetchone()
-            approved_at = approval_log['timestamp'] if approval_log else 'N/A'
-            
-            # Fetch acknowledgment timestamp from logs
-            if USE_SQLITE:
-                c.execute("SELECT timestamp FROM logs WHERE action LIKE ? AND action LIKE ?",
-                          (f"%form {form_id}%", "%Acknowledged%"))
-            else:
-                c.execute("SELECT timestamp FROM logs WHERE action ILIKE %s AND action ILIKE %s",
-                          (f"%form {form_id}%", "%Acknowledged%"))
-            ack_log = c.fetchone()
-            acknowledged_at = ack_log['timestamp'] if ack_log and form['acknowledged'] == 1 else 'N/A'
+            approved_at = logs_dict.get(form_id, {}).get('approved_at', 'N/A')
+            acknowledged_at = logs_dict.get(form_id, {}).get('acknowledged_at', 'N/A') if form['acknowledged'] == 1 else 'N/A'
             
             writer.writerow([
                 form['request_id'],
