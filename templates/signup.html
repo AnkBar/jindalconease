@@ -1,30 +1,35 @@
 {% extends "base.html" %}
 
+{% block title %}Sign Up{% endblock %}
+
 {% block content %}
-<div class="container">
-    <h2>Sign Up</h2>
+<div class="form-container mt-5">
+    <h2 class="text-center">Sign Up for Approval System</h2>
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
-                <div class="alert alert-{{ category }}">{{ message }}</div>
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
             {% endfor %}
         {% endif %}
     {% endwith %}
     <form method="POST" action="{{ url_for('signup') }}">
         <div class="form-group">
-            <label for="username">Username:</label>
+            <label for="username">Username</label>
             <input type="text" id="username" name="username" class="form-control" required>
         </div>
         <div class="form-group">
-            <label for="password">Password:</label>
+            <label for="password">Password</label>
             <input type="password" id="password" name="password" class="form-control" required>
         </div>
         <div class="form-group">
-            <label for="email">Email:</label>
+            <label for="email">Email</label>
             <input type="email" id="email" name="email" class="form-control" required>
         </div>
-        <button type="submit" class="btn btn-primary">Sign Up</button>
+        <button type="submit" class="btn btn-primary w-100">Sign Up</button>
     </form>
-    <p>Already have an account? <a href="{{ url_for('login') }}">Login</a></p>
+    <p class="text-center mt-3">Already have an account? <a href="{{ url_for('login') }}" class="text-primary">Login</a></p>
 </div>
 {% endblock %}
